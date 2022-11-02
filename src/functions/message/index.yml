@@ -1,0 +1,16 @@
+message:
+  handler: src/functions/message/index.default
+  memorySize: 128
+  events:
+    - websocket:
+        route: $default
+        routeResponseSelectionExpression: $default
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+      Resource: !GetAtt TableGame.Arn
+
+  environment:
+    TABLE_GAME: !Ref TableGame

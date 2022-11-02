@@ -21,7 +21,8 @@
   "dependencies": {
     "@orangejellyfish/serverless-toolkit": "^1.3.4",
     "aws-sdk": "2.1083.0",
-    "node-gameloop": "^0.1.4"
+    "node-gameloop": "^0.1.4",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.19.6",
