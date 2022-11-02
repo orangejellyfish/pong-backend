@@ -1,0 +1,15 @@
+disconnect:
+  handler: src/functions/disconnect/index.default
+  memorySize: 128
+  events:
+    - websocket:
+        route: $disconnect
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:DeleteItem
+      Resource: !GetAtt TableConnections.Arn
+
+  environment:
+    TABLE_CONNECTIONS: !Ref TableConnections

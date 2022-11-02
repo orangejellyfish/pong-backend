@@ -65,6 +65,7 @@ package:
 # for resources).
 functions:
   connect: ${file(src/functions/connect/index.yml):connect}
+  disconnect: ${file(src/functions/disconnect/index.yml):disconnect}
   game: ${file(src/functions/game/index.yml):game}
 
 # Custom AWS resource definitions. This includes anything that the Serverless
