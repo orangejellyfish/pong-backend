@@ -1,5 +1,10 @@
+import { EventBridge } from 'aws-sdk';
 import db from '../../utils/dynamodb';
 import log from '../../utils/logging';
+
+const eb = new EventBridge({
+  apiVersion: '2015-10-07',
+});
 
 // Lambda handler. We are using an async function to simplify the code and
 // remove the need to use a callback.
@@ -16,6 +21,21 @@ async function handleConnect(event) {
     await db.put(params);
   } catch (err) {
     log.error('Failed to write connection', err);
+    return { statusCode: 500 };
+  }
+
+  const createGameEvent = {
+    Detail: JSON.stringify({}),
+    DetailType: 'create_game',
+    Source: 'pong/connect',
+  };
+
+  try {
+    await eb.putEvents({
+      Entries: [createGameEvent],
+    }).promise();
+  } catch (err) {
+    log.error('Failed to publish CREATE_GAME event', err);
     return { statusCode: 500 };
   }
 
