@@ -8,6 +8,7 @@ const createGame = async () => {
     TableName: TABLE_GAME,
     Item: {
       pk: 'GAME',
+      sk: 'GAME',
       state: {
         count: 0,
       },
@@ -22,6 +23,7 @@ const deleteGame = async () => {
     TableName: TABLE_GAME,
     Key: {
       pk: 'GAME',
+      sk: 'GAME',
     },
   };
 
@@ -34,6 +36,7 @@ const getGame = async () => {
     TableName: TABLE_GAME,
     Key: {
       pk: 'GAME',
+      sk: 'GAME',
     },
   };
 
