@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 /* eslint-disable no-shadow */
 // Lambda handler. We are using an async function to simplify the code and
 // remove the need to use a callback.
@@ -5,10 +6,10 @@ import AWS from 'aws-sdk';
 import db from '../../utils/dynamodb';
 import log from '../../utils/logging';
 import { createGame, deleteGame } from '../../models/game';
-import { getAllEvents } from '../../models/event';
+import { getAllEvents, deleteEvents } from '../../models/event';
 
 const { TABLE_CONNECTIONS } = process.env;
-const MOVE_AMOUNT = 10;
+const MOVE_AMOUNT = 50;
 
 const api = new AWS.ApiGatewayManagementApi({
   apiVersion: '2018-11-29',
@@ -60,10 +61,19 @@ export const game = async function game(event) {
   async function loop() {
     console.log('START LOOP', counter);
 
-    while (counter < 10) {
+    while (counter < 180) {
       counter += 1;
 
       const allEvents = await getAllEvents();
+
+      log.info(allEvents);
+
+      try {
+        await deleteEvents(allEvents.map((event) => ({ pk: event.pk, sk: event.sk })));
+      } catch (err) {
+        log.error(err);
+        return;
+      }
 
       const leftPaddleEvents = allEvents.filter((event) => event.paddle === 0);
       const rightPaddleEvents = allEvents.filter((event) => event.paddle === 1);
@@ -71,15 +81,15 @@ export const game = async function game(event) {
       const leftDirection = leftPaddleEvents.reduce((total, event) => total + event.event, 0);
       const rightDirection = rightPaddleEvents.reduce((total, event) => total + event.event, 0);
 
-      if (leftDirection > 0) {
+      if (leftDirection < 0) {
         leftPaddleY += MOVE_AMOUNT;
-      } else {
+      } else if (leftDirection > 0) {
         leftPaddleY -= MOVE_AMOUNT;
       }
 
-      if (rightDirection > 0) {
+      if (rightDirection < 0) {
         rightPaddleY += MOVE_AMOUNT;
-      } else {
+      } else if (rightDirection > 0) {
         rightPaddleY -= MOVE_AMOUNT;
       }
 
@@ -89,13 +99,14 @@ export const game = async function game(event) {
 
       const connections = await getConnections();
       await sendMessage(message, connections);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 200));
     }
   }
 
   await loop();
 
   await deleteGame();
+  counter = 0;
 };
 
 export default game;
