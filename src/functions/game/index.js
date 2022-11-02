@@ -1,11 +1,14 @@
+/* eslint-disable no-shadow */
 // Lambda handler. We are using an async function to simplify the code and
 // remove the need to use a callback.
 import AWS from 'aws-sdk';
 import db from '../../utils/dynamodb';
 import log from '../../utils/logging';
 import { createGame, deleteGame } from '../../models/game';
+import { getAllEvents } from '../../models/event';
 
 const { TABLE_CONNECTIONS } = process.env;
+const MOVE_AMOUNT = 10;
 
 const api = new AWS.ApiGatewayManagementApi({
   apiVersion: '2018-11-29',
@@ -51,7 +54,8 @@ async function sendMessage(message, connections) {
 export const game = async function game(event) {
   log.info(event);
   await createGame();
-  counter = 0;
+  let leftPaddleY = 0;
+  let rightPaddleY = 0;
 
   async function loop() {
     console.log('START LOOP', counter);
@@ -59,8 +63,28 @@ export const game = async function game(event) {
     while (counter < 10) {
       counter += 1;
 
+      const allEvents = await getAllEvents();
+
+      const leftPaddleEvents = allEvents.filter((event) => event.paddle === 0);
+      const rightPaddleEvents = allEvents.filter((event) => event.paddle === 1);
+
+      const leftDirection = leftPaddleEvents.reduce((total, event) => total + event.event, 0);
+      const rightDirection = rightPaddleEvents.reduce((total, event) => total + event.event, 0);
+
+      if (leftDirection > 0) {
+        leftPaddleY += MOVE_AMOUNT;
+      } else {
+        leftPaddleY -= MOVE_AMOUNT;
+      }
+
+      if (rightDirection > 0) {
+        rightPaddleY += MOVE_AMOUNT;
+      } else {
+        rightPaddleY -= MOVE_AMOUNT;
+      }
+
       const message = {
-        paddles: [Math.floor(Math.random() * 510), Math.floor(Math.random() * 510)],
+        paddles: [leftPaddleY, rightPaddleY],
       };
 
       const connections = await getConnections();

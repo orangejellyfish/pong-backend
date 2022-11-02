@@ -1,11 +1,14 @@
+import db from '../../utils/dynamodb';
+import log from '../../utils/logging';
+
 const { TABLE_GAME } = process.env;
 
-const getAll = async () => {
-  const allTutors = {
+const getAllEvents = async () => {
+  const allEvents = {
     TableName: TABLE_GAME,
     KeyConditionExpression: '#pk = :pk',
     ExpressionAttributeValues: {
-      ':pk': 'STAFF',
+      ':pk': 'EVENT',
     },
     ExpressionAttributeNames: {
       '#pk': 'pk',
@@ -15,12 +18,38 @@ const getAll = async () => {
 
   let res;
   try {
-    res = await db.query(allTutors);
+    res = await db.query(allEvents);
   } catch (err) {
     throw Error(err);
   }
+
+  return res;
+};
+
+const deleteAllEvents = async (eventsToDelete) => {
+  const allEvents = {
+    TableName: TABLE_GAME,
+    KeyConditionExpression: '#pk = :pk',
+    ExpressionAttributeValues: {
+      ':pk': 'EVENT',
+    },
+    ExpressionAttributeNames: {
+      '#pk': 'pk',
+    },
+    ScanIndexForward: true,
+  };
+
+  let res;
+  try {
+    res = await db.batchDelete(allEvents);
+  } catch (err) {
+    throw Error(err);
+  }
+
+  return res;
 };
 
 export {
-  getAll,
+  getAllEvents,
+  deleteAllEvents,
 };
