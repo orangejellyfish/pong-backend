@@ -1,7 +1,7 @@
 game:
   handler: src/functions/game/index.default
   memorySize: 128
-  timeout: 60
+  timeout: 20
   events:
     - eventBridge:
         pattern:
@@ -20,6 +20,10 @@ game:
       Action:
         - dynamodb:Scan
       Resource: !GetAtt TableConnections.Arn
+    - Effect: Allow
+      Action:
+        - execute-api:ManageConnections
+      Resource: "*"
 
   environment:
     TABLE_GAME: !Ref TableGame

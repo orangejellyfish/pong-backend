@@ -28,32 +28,60 @@ const createGame = async () => {
   await db.put(newGame);
 };
 
+async function getConnections() {
+  log.info('GET CONNECTIONS');
+  let connections;
+
+  try {
+    connections = await db.scan({
+      TableName: TABLE_CONNECTIONS,
+    });
+  } catch (err) {
+    log.error('Failed to get connections', err);
+    throw err;
+  }
+
+  log.info('GOT CONNECTIONS', connections);
+
+  return connections;
+}
+
+async function sendMessage(message, connections) {
+  log.info('SEND MESSAGE', connections);
+  try {
+    await Promise.all(
+      connections.map((connection) => api.postToConnection({
+        ConnectionId: connection.pk,
+        Data: JSON.stringify({
+          message,
+        }),
+      }).promise()),
+    );
+  } catch (err) {
+    log.error('Failed to send message to connection', err);
+  }
+}
+
 export const game = async function game(event) {
   log.info(event);
   // await createGame();
 
-  setInterval(async () => {
-    // eslint-disable-next-line no-plusplus
-    counter++;
+  async function loop() {
+    console.log('START LOOP', counter);
 
-    const connections = await db.scan({
-      TableName: TABLE_CONNECTIONS,
-    });
+    while (counter < 10000) {
+      counter += 1;
 
-    try {
-      await Promise.all(
-        connections.map((connection) => api.postToConnection({
-          ConnectionId: connection.pk,
-          Data: JSON.stringify({
-            counter,
-          }),
-        }).promise()),
-      );
-    } catch (err) {
-      log.error('Failed to send message to connection', err);
-      log.error(err);
+      console.log('LOOP', counter);
+
+      // await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      const connections = await getConnections();
+      await sendMessage(counter, connections);
     }
-  }, 500);
+  }
+
+  await loop();
 };
 
 export default game;
