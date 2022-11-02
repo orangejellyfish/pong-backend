@@ -65,6 +65,7 @@ package:
 # for resources).
 functions:
   connect: ${file(src/functions/connect/index.yml):connect}
+  game: ${file(src/functions/game/index.yml):game}
 
 # Custom AWS resource definitions. This includes anything that the Serverless
 # framework doesn't handle for us, such as database setup, and overrides of

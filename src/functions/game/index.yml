@@ -1,0 +1,22 @@
+game:
+  handler: src/functions/game/index.default
+  memorySize: 128
+  timeout: 60
+  events:
+    - eventBridge:
+        pattern:
+          source:
+            - pong/connect
+          detail-type:
+            - create_game
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+      Resource:
+        - Fn::GetAtt: [ TableGame, Arn ]
+
+  environment:
+    TABLE_GAME:
+      Ref: TableGame
