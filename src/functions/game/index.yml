@@ -16,7 +16,19 @@ game:
         - dynamodb:PutItem
       Resource:
         - Fn::GetAtt: [ TableGame, Arn ]
+    - Effect: Allow
+      Action:
+        - dynamodb:Scan
+      Resource: !GetAtt TableConnections.Arn
 
   environment:
-    TABLE_GAME:
-      Ref: TableGame
+    TABLE_GAME: !Ref TableGame
+    TABLE_CONNECTIONS: !Ref TableConnections
+    APIGATEWAY_ENDPOINT:
+      Fn::Join:
+        - ""
+        - - !Ref WebsocketsApi
+          - .execute-api.
+          - !Ref AWS::Region
+          - .amazonaws.com/
+          - ${self:custom.stage}
