@@ -14,6 +14,8 @@ game:
     - Effect: Allow
       Action:
         - dynamodb:PutItem
+        - dynamodb:GetItem
+        - dynamodb:DeleteItem
       Resource:
         - Fn::GetAtt: [ TableGame, Arn ]
     - Effect: Allow

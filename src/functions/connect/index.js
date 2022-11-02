@@ -1,6 +1,7 @@
 import { EventBridge } from 'aws-sdk';
 import db from '../../utils/dynamodb';
 import log from '../../utils/logging';
+import { getGame } from '../../models/game';
 
 const eb = new EventBridge({
   apiVersion: '2015-10-07',
@@ -22,6 +23,15 @@ async function handleConnect(event) {
   } catch (err) {
     log.error('Failed to write connection', err);
     return { statusCode: 500 };
+  }
+
+  try {
+    const game = await getGame();
+    if (game) {
+      return { statusCode: 200 };
+    }
+  } catch (err) {
+    log.error(err);
   }
 
   const createGameEvent = {

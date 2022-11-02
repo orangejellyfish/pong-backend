@@ -3,8 +3,9 @@
 import AWS from 'aws-sdk';
 import db from '../../utils/dynamodb';
 import log from '../../utils/logging';
+import { createGame, deleteGame } from '../../models/game';
 
-const { TABLE_GAME, TABLE_CONNECTIONS } = process.env;
+const { TABLE_CONNECTIONS } = process.env;
 
 const api = new AWS.ApiGatewayManagementApi({
   apiVersion: '2018-11-29',
@@ -12,21 +13,6 @@ const api = new AWS.ApiGatewayManagementApi({
 });
 
 let counter = 0;
-
-const createGame = async () => {
-  const newGame = {
-    TableName: TABLE_GAME,
-    Item: {
-      pk: 'GAME',
-      sk: 'STATE',
-      state: {
-        count: 0,
-      },
-    },
-  };
-
-  await db.put(newGame);
-};
 
 async function getConnections() {
   log.info('GET CONNECTIONS');
@@ -64,24 +50,28 @@ async function sendMessage(message, connections) {
 
 export const game = async function game(event) {
   log.info(event);
-  // await createGame();
+  await createGame();
+  counter = 0;
 
   async function loop() {
     console.log('START LOOP', counter);
 
-    while (counter < 10000) {
+    while (counter < 10) {
       counter += 1;
 
-      console.log('LOOP', counter);
-
-      // await new Promise((resolve) => setTimeout(resolve, 1000));
+      const message = {
+        paddles: [Math.floor(Math.random() * 510), Math.floor(Math.random() * 510)],
+      };
 
       const connections = await getConnections();
-      await sendMessage(counter, connections);
+      await sendMessage(message, connections);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
   }
 
   await loop();
+
+  await deleteGame();
 };
 
 export default game;

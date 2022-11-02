@@ -12,6 +12,11 @@ connect:
       Resource: !GetAtt TableConnections.Arn
     - Effect: Allow
       Action:
+        - dynamodb:GetItem
+      Resource:
+        - Fn::GetAtt: [ TableGame, Arn ]
+    - Effect: Allow
+      Action:
         - events:PutEvents
       Resource:
         Fn::Join:
@@ -26,3 +31,4 @@ connect:
 
   environment:
     TABLE_CONNECTIONS: !Ref TableConnections
+    TABLE_GAME: !Ref TableGame
