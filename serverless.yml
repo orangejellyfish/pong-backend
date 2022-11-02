@@ -64,7 +64,7 @@ package:
 # and parsing works (in an ideal world we could include these in a list as we do
 # for resources).
 functions:
-  hello: ${file(src/functions/hello/index.yml):hello}
+  connect: ${file(src/functions/connect/index.yml):connect}
 
 # Custom AWS resource definitions. This includes anything that the Serverless
 # framework doesn't handle for us, such as database setup, and overrides of
@@ -74,6 +74,7 @@ functions:
 # separate custom CloudFormation resources into files by type. You can safely
 # delete the example file and this reference to it.
 resources:
+  - ${file(src/resources/dynamodb.yml)}
   - ${file(src/resources/sns.yml)}
 
 # Custom configuration. This is where Serverless Framework plugins get their

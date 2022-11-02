@@ -1,0 +1,15 @@
+connect:
+  handler: src/functions/connect/index.default
+  memorySize: 128
+  events:
+    - websocket:
+        route: $connect
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+      Resource: !GetAtt TableConnections.Arn
+
+  environment:
+    TABLE_CONNECTIONS: !Ref TableConnections
