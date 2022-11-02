@@ -1,0 +1,57 @@
+game:
+  handler: src/functions/game/index.default
+  memorySize: 1024
+  timeout: 120
+  events:
+    - eventBridge:
+        pattern:
+          source:
+            - pong/connect
+          detail-type:
+            - client_connected
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+        - dynamodb:GetItem
+        - dynamodb:BatchWriteItem
+        - dynamodb:DeleteItem
+        - dynamodb:Query
+      Resource:
+        - Fn::GetAtt: [ TableGame, Arn ]
+    - Effect: Allow
+      Action:
+        - dynamodb:Scan
+      Resource: !GetAtt TableConnections.Arn
+    - Effect: Allow
+      Action:
+        - execute-api:ManageConnections
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - events:PutEvents
+      Resource:
+        Fn::Join:
+          - ""
+          -
+            - "arn:aws:events:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - "event-bus/default"
+
+  environment:
+    TABLE_GAME: !Ref TableGame
+    TABLE_CONNECTIONS: !Ref TableConnections
+    APIGATEWAY_ENDPOINT:
+      Fn::Join:
+        - ""
+        - - !Ref WebsocketsApi
+          - .execute-api.
+          - !Ref AWS::Region
+          - .amazonaws.com/
+          - ${self:custom.stage}
+    AWS_EMF_NAMESPACE: pong
+

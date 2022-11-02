@@ -1,0 +1,35 @@
+connect:
+  handler: src/functions/connect/index.default
+  memorySize: 512
+  events:
+    - websocket:
+        route: $connect
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+      Resource: !GetAtt TableConnections.Arn
+    - Effect: Allow
+      Action:
+        - dynamodb:GetItem
+      Resource:
+        - Fn::GetAtt: [ TableGame, Arn ]
+    - Effect: Allow
+      Action:
+        - events:PutEvents
+      Resource:
+        Fn::Join:
+          - ""
+          -
+            - "arn:aws:events:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - "event-bus/default"
+
+  environment:
+    TABLE_CONNECTIONS: !Ref TableConnections
+    TABLE_GAME: !Ref TableGame
+    AWS_EMF_NAMESPACE: pong
