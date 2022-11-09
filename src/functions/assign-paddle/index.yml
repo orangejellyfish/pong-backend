@@ -1,7 +1,7 @@
-game:
-  handler: src/functions/game/index.default
-  memorySize: 512
-  timeout: 60
+assignPaddle:
+  handler: src/functions/assign-paddle/index.default
+  memorySize: 128
+  timeout: 6
   events:
     - eventBridge:
         pattern:
@@ -14,14 +14,6 @@ game:
     - Effect: Allow
       Action:
         - dynamodb:PutItem
-        - dynamodb:GetItem
-        - dynamodb:BatchWriteItem
-        - dynamodb:DeleteItem
-        - dynamodb:Query
-      Resource:
-        - Fn::GetAtt: [ TableGame, Arn ]
-    - Effect: Allow
-      Action:
         - dynamodb:Scan
       Resource: !GetAtt TableConnections.Arn
     - Effect: Allow
@@ -43,7 +35,6 @@ game:
             - "event-bus/default"
 
   environment:
-    TABLE_GAME: !Ref TableGame
     TABLE_CONNECTIONS: !Ref TableConnections
     APIGATEWAY_ENDPOINT:
       Fn::Join:

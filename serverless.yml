@@ -64,6 +64,8 @@ package:
 # and parsing works (in an ideal world we could include these in a list as we do
 # for resources).
 functions:
+  assignPaddle: ${file(src/functions/assign-paddle/index.yml):assignPaddle}
+  broadcast: ${file(src/functions/broadcast/index.yml):broadcast}
   connect: ${file(src/functions/connect/index.yml):connect}
   disconnect: ${file(src/functions/disconnect/index.yml):disconnect}
   message: ${file(src/functions/message/index.yml):message}
@@ -77,7 +79,9 @@ functions:
 # separate custom CloudFormation resources into files by type. You can safely
 # delete the example file and this reference to it.
 resources:
+  - ${file(src/resources/cloudwatch.yml)}
   - ${file(src/resources/dynamodb.yml)}
+  - ${file(src/resources/eventbridge.yml)}
   - ${file(src/resources/sns.yml)}
 
 # Custom configuration. This is where Serverless Framework plugins get their

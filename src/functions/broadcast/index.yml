@@ -1,14 +1,14 @@
-game:
-  handler: src/functions/game/index.default
+broadcast:
+  handler: src/functions/broadcast/index.default
   memorySize: 512
   timeout: 60
   events:
     - eventBridge:
         pattern:
           source:
-            - pong/connect
+            - pong/game
           detail-type:
-            - client_connected
+            - game_state
 
   iamRoleStatements:
     - Effect: Allow

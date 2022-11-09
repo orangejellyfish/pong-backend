@@ -1,7 +1,6 @@
 import { EventBridge } from 'aws-sdk';
 import db from '../../utils/dynamodb';
 import log from '../../utils/logging';
-import { getGame } from '../../models/game';
 
 const eb = new EventBridge({
   apiVersion: '2015-10-07',
@@ -25,27 +24,18 @@ async function handleConnect(event) {
     return { statusCode: 500 };
   }
 
-  try {
-    const game = await getGame();
-    if (game) {
-      return { statusCode: 200 };
-    }
-  } catch (err) {
-    log.error(err);
-  }
-
-  const createGameEvent = {
-    Detail: JSON.stringify({}),
-    DetailType: 'create_game',
+  const clientConnectedEvent = {
+    Detail: JSON.stringify({ connectionId }),
+    DetailType: 'client_connected',
     Source: 'pong/connect',
   };
 
   try {
     await eb.putEvents({
-      Entries: [createGameEvent],
+      Entries: [clientConnectedEvent],
     }).promise();
   } catch (err) {
-    log.error('Failed to publish CREATE_GAME event', err);
+    log.error('Failed to publish client_connected event', err);
     return { statusCode: 500 };
   }
 
