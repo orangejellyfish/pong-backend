@@ -105,12 +105,16 @@ export const game = async function game() {
         game.state.paddles[0].dy = Game.PADDLE_SPEED;
       } else if (leftDirection > 0) {
         game.state.paddles[0].dy = -Game.PADDLE_SPEED;
+      } else {
+        game.state.paddles[0].dy = 0;
       }
 
       if (rightDirection < 0) {
         game.state.paddles[1].dy = Game.PADDLE_SPEED;
       } else if (rightDirection > 0) {
         game.state.paddles[1].dy = -Game.PADDLE_SPEED;
+      } else {
+        game.state.paddles[1].dy = 0;
       }
 
       game.tick();
@@ -130,8 +134,8 @@ export const game = async function game() {
       // }
 
       const connections = await getConnections();
-      await sendMessage({ state: game.state, paddle: 1 }, connections);
-      // await new Promise((resolve) => setTimeout(resolve, 250));
+      await sendMessage({ state: game.state }, connections);
+      await new Promise((resolve) => setTimeout(resolve, 250));
     }
   }
 

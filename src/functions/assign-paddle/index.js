@@ -14,14 +14,24 @@ const api = new AWS.ApiGatewayManagementApi({
 });
 
 async function setPaddleinDatabase(connectionId) {
+  let paddle;
+
   try {
     const connectionItems = await db.scan({
       TableName: TABLE_CONNECTIONS,
     });
 
-    const connectionItemsCount = connectionItems.length;
+    const paddlesOnRight = connectionItems.filter((item) => item.paddle === 1);
 
-    const paddle = connectionItemsCount % 2;
+    log.info(`paddlesOnRight: ${paddlesOnRight}`);
+
+    if (paddlesOnRight.length > (connectionItems.length / 2)) {
+      log.info('assigned left paddle');
+      paddle = 0;
+    } else {
+      log.info('assigned right paddle');
+      paddle = 1;
+    }
 
     await db.put({
       TableName: TABLE_CONNECTIONS,
@@ -50,8 +60,6 @@ async function sendMessage(message, connectionId) {
 }
 
 const assignPaddle = async function assignPaddle(event) {
-  log.info(event);
-
   const { connectionId } = event.detail;
 
   const paddle = await setPaddleinDatabase(connectionId);
