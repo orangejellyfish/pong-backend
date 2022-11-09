@@ -10,10 +10,13 @@ const eb = new EventBridge({
 // remove the need to use a callback.
 async function handleConnect(event) {
   const { requestContext: { connectionId } } = event;
+  const display = event?.queryStringParameters?.display;
+
   const params = {
     TableName: process.env.TABLE_CONNECTIONS,
     Item: {
       pk: connectionId,
+      display,
     },
   };
 
@@ -24,19 +27,21 @@ async function handleConnect(event) {
     return { statusCode: 500 };
   }
 
-  const clientConnectedEvent = {
-    Detail: JSON.stringify({ connectionId }),
-    DetailType: 'client_connected',
-    Source: 'pong/connect',
-  };
+  if (!display) {
+    const clientConnectedEvent = {
+      Detail: JSON.stringify({ connectionId }),
+      DetailType: 'client_connected',
+      Source: 'pong/connect',
+    };
 
-  try {
-    await eb.putEvents({
-      Entries: [clientConnectedEvent],
-    }).promise();
-  } catch (err) {
-    log.error('Failed to publish client_connected event', err);
-    return { statusCode: 500 };
+    try {
+      await eb.putEvents({
+        Entries: [clientConnectedEvent],
+      }).promise();
+    } catch (err) {
+      log.error('Failed to publish client_connected event', err);
+      return { statusCode: 500 };
+    }
   }
 
   return { statusCode: 200 };

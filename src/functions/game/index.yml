@@ -1,6 +1,6 @@
 game:
   handler: src/functions/game/index.default
-  memorySize: 256
+  memorySize: 1024
   timeout: 300
   events:
     - eventBridge:

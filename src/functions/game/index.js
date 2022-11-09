@@ -93,12 +93,16 @@ export const game = async function game() {
 
       const allEvents = await getAllEvents();
 
+      const getAllEventsTime = performance.now() - loopStartTime;
+
       try {
         await deleteEvents(allEvents.map((event) => ({ pk: event.pk, sk: event.sk })));
       } catch (err) {
         log.error(err);
         return;
       }
+
+      const deleteAllEventsTime = performance.now() - loopStartTime;
 
       // Move paddles.
       const leftPaddleEvents = allEvents.filter((event) => event.paddle === 0);
@@ -138,10 +142,14 @@ export const game = async function game() {
       // } catch (err) {
       //   log.error('Failed to publish game_ended event', err);
       // }
+      const gameLogicEndTime = performance.now() - loopStartTime;
 
       const connections = await getConnections();
-      await sendMessage({ state: game.state }, connections);
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await sendMessage({ state: game.state }, connections.filter((connection) => connection.display));
+
+      const messageSendEndTime = performance.now() - loopStartTime;
+
+      log.info(getAllEventsTime, deleteAllEventsTime, gameLogicEndTime, messageSendEndTime);
     }
   }
 
@@ -156,6 +164,11 @@ export const game = async function game() {
     log.error('Failed to publish game_ended event', err);
   }
 
+  // Also send to all connected Clients
+  const connections = await getConnections();
+  await sendMessage({ event: 'GAME_END' }, connections);
+
+  // Clear up the game from DB
   await deleteGame();
   counter = 0;
 };

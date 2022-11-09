@@ -8,9 +8,9 @@ const CANVAS_HEIGHT = 585;
 const GRID = 15;
 const PADDLE_HEIGHT = GRID * 5;
 const PADDLE_WIDTH = GRID;
-const PADDLE_SPEED = 40;
+const PADDLE_SPEED = 30;
 const MAX_PADDLE_Y = CANVAS_HEIGHT - GRID - PADDLE_HEIGHT;
-const BALL_SPEED = 20;
+const BALL_SPEED = 10;
 const BALL_WIDTH = GRID;
 const BALL_HEIGHT = GRID;
 
@@ -189,7 +189,6 @@ const getGame = async () => {
   };
 
   const result = await db.get(game);
-  log.info(`got game ${result}`);
   return result;
 };
 
