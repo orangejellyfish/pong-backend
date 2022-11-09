@@ -142,7 +142,7 @@ class Game {
 
       // Move ball next to the paddle otherwise the collision will happen again
       // in the next frame.
-      ball.x = leftPaddle.x + leftPaddle.width;
+      ball.x = leftPaddle.x + PADDLE_WIDTH;
     } else if (collides(
       ball.x,
       ball.y,
