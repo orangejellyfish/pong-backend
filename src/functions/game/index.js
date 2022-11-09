@@ -5,7 +5,7 @@
 import AWS from 'aws-sdk';
 import db from '../../utils/dynamodb';
 import log from '../../utils/logging';
-import { Game, deleteGame } from '../../models/game';
+import { Game, deleteGame, getGame } from '../../models/game';
 import { getAllEvents, deleteEvents } from '../../models/event';
 
 const { TABLE_CONNECTIONS } = process.env;
@@ -80,10 +80,16 @@ export const game = async function game() {
       log.error('Failed to publish game_started event', err);
     }
 
-    while (counter < 100) {
+    while (counter < 1000) {
       const loopStartTime = performance.now();
 
       counter += 1;
+
+      const isGame = await getGame();
+
+      if (!isGame) {
+        return;
+      }
 
       const allEvents = await getAllEvents();
 
@@ -135,7 +141,7 @@ export const game = async function game() {
 
       const connections = await getConnections();
       await sendMessage({ state: game.state }, connections);
-      await new Promise((resolve) => setTimeout(resolve, 250));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
   }
 
