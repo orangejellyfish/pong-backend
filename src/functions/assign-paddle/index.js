@@ -2,16 +2,12 @@
 /* eslint-disable no-shadow */
 // Lambda handler. We are using an async function to simplify the code and
 // remove the need to use a callback.
-import AWS from 'aws-sdk';
 import db from '../../utils/dynamodb';
+import logging from '../../utils/logging';
 import log from '../../utils/logging';
+import { sendMessage } from '../../utils/sockets';
 
 const { TABLE_CONNECTIONS } = process.env;
-
-const api = new AWS.ApiGatewayManagementApi({
-  apiVersion: '2018-11-29',
-  endpoint: process.env.APIGATEWAY_ENDPOINT,
-});
 
 async function setPaddleinDatabase(connectionId) {
   let paddle;
@@ -21,11 +17,13 @@ async function setPaddleinDatabase(connectionId) {
       TableName: TABLE_CONNECTIONS,
     });
 
-    const paddlesOnRight = connectionItems.filter((item) => item.paddle === 1);
+    const currentConnectionItem = connectionItems.find((item) => item.pk === connectionId);
 
-    log.info(`paddlesOnRight: ${paddlesOnRight}`);
+    const clientConnectionItems = connectionItems.filter((item) => !item.display);
 
-    if (paddlesOnRight.length > (connectionItems.length / 2)) {
+    const paddlesOnRight = clientConnectionItems.filter((item) => item.paddle === 1);
+
+    if (paddlesOnRight.length > Math.floor(clientConnectionItems.length / 2)) {
       log.info('assigned left paddle');
       paddle = 0;
     } else {
@@ -33,38 +31,31 @@ async function setPaddleinDatabase(connectionId) {
       paddle = 1;
     }
 
-    await db.put({
+    const newConnectionItem = { ...currentConnectionItem, paddle };
+
+    const update = db.generateUpdateExpression(currentConnectionItem, newConnectionItem);
+
+    await db.update({
       TableName: TABLE_CONNECTIONS,
-      Item: {
-        pk: connectionId,
-        paddle,
+      Key: {
+        pk: currentConnectionItem.pk,
       },
+      ...update,
     });
 
-    return paddle;
+    return newConnectionItem;
   } catch (err) {
     log.error('Failed to update connection with paddle', err);
     throw err;
   }
 }
 
-async function sendMessage(message, connectionId) {
-  try {
-    await api.postToConnection({
-      ConnectionId: connectionId,
-      Data: JSON.stringify(message),
-    }).promise();
-  } catch (err) {
-    log.error('Failed to send message to connection', err);
-  }
-}
-
 const assignPaddle = async function assignPaddle(event) {
   const { connectionId } = event.detail;
 
-  const paddle = await setPaddleinDatabase(connectionId);
+  const newConnectionItem = await setPaddleinDatabase(connectionId);
 
-  await sendMessage({ paddle }, connectionId);
+  await sendMessage({ paddle: newConnectionItem.paddle }, newConnectionItem);
 };
 
 export default assignPaddle;

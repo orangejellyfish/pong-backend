@@ -3,17 +3,10 @@
 // Lambda handler. We are using an async function to simplify the code and
 // remove the need to use a callback.
 import AWS from 'aws-sdk';
-import db from '../../utils/dynamodb';
 import log from '../../utils/logging';
 import { Game, deleteGame, getGame } from '../../models/game';
 import { getAllEvents, deleteEvents } from '../../models/event';
-
-const { TABLE_CONNECTIONS } = process.env;
-
-const api = new AWS.ApiGatewayManagementApi({
-  apiVersion: '2018-11-29',
-  endpoint: process.env.APIGATEWAY_ENDPOINT,
-});
+import { getConnections, sendMessage } from '../../utils/sockets';
 
 const eb = new AWS.EventBridge({
   apiVersion: '2015-10-07',
@@ -32,34 +25,6 @@ const gameEndedEvent = {
 };
 
 let counter = 0;
-
-async function getConnections() {
-  let connections;
-
-  try {
-    connections = await db.scan({
-      TableName: TABLE_CONNECTIONS,
-    });
-  } catch (err) {
-    log.error('Failed to get connections', err);
-    throw err;
-  }
-
-  return connections;
-}
-
-async function sendMessage(message, connections) {
-  try {
-    await Promise.all(
-      connections.map((connection) => api.postToConnection({
-        ConnectionId: connection.pk,
-        Data: JSON.stringify(message),
-      }).promise()),
-    );
-  } catch (err) {
-    log.error('Failed to send message to connection', err);
-  }
-}
 
 export const game = async function game() {
   // Create a new game instance and store the fact that a game has begun in the
@@ -145,11 +110,17 @@ export const game = async function game() {
       const gameLogicEndTime = performance.now() - loopStartTime;
 
       const connections = await getConnections();
-      await sendMessage({ state: game.state }, connections.filter((connection) => connection.display));
+      await sendMessage(
+        {
+          state: game.state,
+          info: { connections: connections.length },
+        },
+        connections.filter((connection) => connection.display),
+      );
 
       const messageSendEndTime = performance.now() - loopStartTime;
 
-      log.info(getAllEventsTime, deleteAllEventsTime, gameLogicEndTime, messageSendEndTime);
+      // log.info(getAllEventsTime, deleteAllEventsTime, gameLogicEndTime, messageSendEndTime);
     }
   }
 

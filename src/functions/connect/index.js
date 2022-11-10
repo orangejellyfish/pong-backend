@@ -20,6 +20,11 @@ async function handleConnect(event) {
     },
   };
 
+  // Add TTL onto any connection that is not a display
+  if (!display) {
+    params.Item.ttl = Math.floor(Date.now() / 1000) + 60 * 60; // 60 Minutes
+  }
+
   try {
     await db.put(params);
   } catch (err) {
@@ -27,21 +32,19 @@ async function handleConnect(event) {
     return { statusCode: 500 };
   }
 
-  if (!display) {
-    const clientConnectedEvent = {
-      Detail: JSON.stringify({ connectionId }),
-      DetailType: 'client_connected',
-      Source: 'pong/connect',
-    };
+  const clientConnectedEvent = {
+    Detail: JSON.stringify({ connectionId }),
+    DetailType: display ? 'display_connected' : 'client_connected',
+    Source: 'pong/connect',
+  };
 
-    try {
-      await eb.putEvents({
-        Entries: [clientConnectedEvent],
-      }).promise();
-    } catch (err) {
-      log.error('Failed to publish client_connected event', err);
-      return { statusCode: 500 };
-    }
+  try {
+    await eb.putEvents({
+      Entries: [clientConnectedEvent],
+    }).promise();
+  } catch (err) {
+    log.error('Failed to publish client_connected event', err);
+    return { statusCode: 500 };
   }
 
   return { statusCode: 200 };
