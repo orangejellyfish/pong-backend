@@ -3,7 +3,6 @@
 // Lambda handler. We are using an async function to simplify the code and
 // remove the need to use a callback.
 import db from '../../utils/dynamodb';
-import logging from '../../utils/logging';
 import log from '../../utils/logging';
 import { sendMessage } from '../../utils/sockets';
 
@@ -23,7 +22,7 @@ async function setPaddleinDatabase(connectionId) {
 
     const paddlesOnRight = clientConnectionItems.filter((item) => item.paddle === 1);
 
-    if (paddlesOnRight.length > Math.floor(clientConnectionItems.length / 2)) {
+    if (paddlesOnRight.length > Math.floor((clientConnectionItems.length - 1) / 2)) {
       log.info('assigned left paddle');
       paddle = 0;
     } else {
