@@ -1,4 +1,5 @@
 import { EventBridge } from 'aws-sdk';
+import { createMetricsLogger, Unit } from 'aws-embedded-metrics';
 import db from '../../utils/dynamodb';
 import log from '../../utils/logging';
 
@@ -9,6 +10,11 @@ const eb = new EventBridge({
 // Lambda handler. We are using an async function to simplify the code and
 // remove the need to use a callback.
 async function handleConnect(event) {
+  const eventHandleStartTime = performance.now();
+
+  const metrics = createMetricsLogger();
+  metrics.putDimensions({ Service: 'Connect' });
+
   const { requestContext: { connectionId } } = event;
   const display = event?.queryStringParameters?.display;
 
@@ -46,6 +52,12 @@ async function handleConnect(event) {
     log.error('Failed to publish client_connected event', err);
     return { statusCode: 500 };
   }
+
+  const eEventOverallTime = performance.now() - eventHandleStartTime;
+
+  metrics.putMetric('Connect Time', eEventOverallTime, Unit.Milliseconds);
+
+  await metrics.flush();
 
   return { statusCode: 200 };
 }

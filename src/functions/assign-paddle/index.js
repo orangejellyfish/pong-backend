@@ -2,8 +2,10 @@
 /* eslint-disable no-shadow */
 // Lambda handler. We are using an async function to simplify the code and
 // remove the need to use a callback.
+import { createMetricsLogger, Unit } from 'aws-embedded-metrics';
 import db from '../../utils/dynamodb';
 import log from '../../utils/logging';
+
 import { sendMessage } from '../../utils/sockets';
 
 const { TABLE_CONNECTIONS } = process.env;
@@ -50,11 +52,21 @@ async function setPaddleinDatabase(connectionId) {
 }
 
 const assignPaddle = async function assignPaddle(event) {
+  const eventHandleStartTime = performance.now();
+  const metrics = createMetricsLogger();
+
   const { connectionId } = event.detail;
 
   const newConnectionItem = await setPaddleinDatabase(connectionId);
 
   await sendMessage({ paddle: newConnectionItem.paddle }, newConnectionItem);
+
+  const eventHandleEndTime = performance.now();
+  const eventTotalTime = eventHandleEndTime - eventHandleStartTime;
+
+  metrics.putMetric('Player Allocation', eventTotalTime, Unit.Milliseconds);
+  metrics.putDimensions({ Service: 'Paddle' });
+  await metrics.flush();
 };
 
 export default assignPaddle;

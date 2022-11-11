@@ -1,6 +1,6 @@
 assignPaddle:
   handler: src/functions/assign-paddle/index.default
-  memorySize: 128
+  memorySize: 512
   timeout: 6
   events:
     - eventBridge:
@@ -44,3 +44,4 @@ assignPaddle:
           - !Ref AWS::Region
           - .amazonaws.com/
           - ${self:custom.stage}
+    AWS_EMF_NAMESPACE: pong

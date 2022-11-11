@@ -1,6 +1,6 @@
 connect:
   handler: src/functions/connect/index.default
-  memorySize: 128
+  memorySize: 512
   events:
     - websocket:
         route: $connect
@@ -32,3 +32,4 @@ connect:
   environment:
     TABLE_CONNECTIONS: !Ref TableConnections
     TABLE_GAME: !Ref TableGame
+    AWS_EMF_NAMESPACE: pong

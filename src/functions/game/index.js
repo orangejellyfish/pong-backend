@@ -3,6 +3,7 @@
 // Lambda handler. We are using an async function to simplify the code and
 // remove the need to use a callback.
 import AWS from 'aws-sdk';
+import { createMetricsLogger, Unit } from 'aws-embedded-metrics';
 import log from '../../utils/logging';
 import { Game, deleteGame, getGame } from '../../models/game';
 import { getAllEvents, deleteEvents } from '../../models/event';
@@ -27,6 +28,10 @@ const gameEndedEvent = {
 let counter = 0;
 
 export const game = async function game() {
+  const metrics = createMetricsLogger();
+
+  metrics.putDimensions({ Service: 'Game' });
+
   // Create a new game instance and store the fact that a game has begun in the
   // database. Only one instance can be running at a time.
   const game = await Game.create();
@@ -67,7 +72,7 @@ export const game = async function game() {
         return;
       }
 
-      const deleteAllEventsTime = performance.now() - loopStartTime;
+      const deleteAllEventsTime = performance.now() - getAllEventsTime;
 
       // Move paddles.
       const leftPaddleEvents = allEvents.filter((event) => event.paddle === 0);
@@ -118,9 +123,14 @@ export const game = async function game() {
         connections.filter((connection) => connection.display),
       );
 
-      const messageSendEndTime = performance.now() - loopStartTime;
+      const messageSendEndTime = performance.now() - gameLogicEndTime;
 
-      // log.info(getAllEventsTime, deleteAllEventsTime, gameLogicEndTime, messageSendEndTime);
+      metrics.putMetric('Process Events', getAllEventsTime, Unit.Milliseconds);
+      metrics.putMetric('Remove Events', deleteAllEventsTime, Unit.Milliseconds);
+      metrics.putMetric('Game Logic', gameLogicEndTime, Unit.Milliseconds);
+      metrics.putMetric('Message Send', messageSendEndTime, Unit.Milliseconds);
+
+      await metrics.flush();
     }
   }
 

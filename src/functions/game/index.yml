@@ -53,3 +53,5 @@ game:
           - !Ref AWS::Region
           - .amazonaws.com/
           - ${self:custom.stage}
+    AWS_EMF_NAMESPACE: pong
+

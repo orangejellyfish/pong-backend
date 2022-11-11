@@ -1,6 +1,6 @@
 message:
   handler: src/functions/message/index.default
-  memorySize: 128
+  memorySize: 512
   events:
     - websocket:
         route: $default
@@ -14,3 +14,4 @@ message:
 
   environment:
     TABLE_GAME: !Ref TableGame
+    AWS_EMF_NAMESPACE: pong
