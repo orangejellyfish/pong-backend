@@ -13,6 +13,7 @@ const MAX_PADDLE_Y = CANVAS_HEIGHT - GRID - PADDLE_HEIGHT;
 const BALL_SPEED = 10;
 const BALL_WIDTH = GRID;
 const BALL_HEIGHT = GRID;
+const GAME_WINNING_SCORE = 10;
 
 // Check for collision between two objects using axis-aligned bounding box.
 function collides(ax, ay, aw, ah, bx, by, bw, bh) {
@@ -149,6 +150,12 @@ class Game {
         scores[0] += 1;
       }
 
+      // See if we have a winner
+      if (scores[0] > GAME_WINNING_SCORE || scores[1] > GAME_WINNING_SCORE) {
+        return true;
+      }
+
+      // Reset Ball Position.
       ball.x = CANVAS_WIDTH / 2;
       ball.y = CANVAS_HEIGHT / 2;
     }
@@ -185,11 +192,17 @@ class Game {
       // in the next frame.
       ball.x = rightPaddle.x - BALL_WIDTH;
     }
+
+    return false;
   }
 
   tick() {
     this.#movePaddles();
-    this.#moveBall();
+    return this.#moveBall();
+  }
+
+  getWinner() {
+    return this.state.scores[0] > this.state.scores[1] ? 'Left Paddle' : 'Right Paddle';
   }
 }
 

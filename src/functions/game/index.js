@@ -19,12 +19,6 @@ const gameStartedEvent = {
   Source: 'pong/game',
 };
 
-const gameEndedEvent = {
-  Detail: JSON.stringify({}),
-  DetailType: 'game_ended',
-  Source: 'pong/game',
-};
-
 let counter = 0;
 
 export const game = async function game() {
@@ -63,7 +57,8 @@ export const game = async function game() {
 
       const allEvents = await getAllEvents();
 
-      const getAllEventsTime = performance.now() - loopStartTime;
+      const getAllEventsTimeStamp = performance.now();
+      const getAllEventsTime = getAllEventsTimeStamp - loopStartTime;
 
       try {
         await deleteEvents(allEvents.map((event) => ({ pk: event.pk, sk: event.sk })));
@@ -72,7 +67,8 @@ export const game = async function game() {
         return;
       }
 
-      const deleteAllEventsTime = performance.now() - getAllEventsTime;
+      const deleteAllEventsTimeStamp = performance.now();
+      const deleteAllEventsTime = deleteAllEventsTimeStamp - getAllEventsTimeStamp;
 
       // Move paddles.
       const leftPaddleEvents = allEvents.filter((event) => event.paddle === 0);
@@ -97,7 +93,11 @@ export const game = async function game() {
         game.state.paddles[1].dy = 0;
       }
 
-      game.tick();
+      const hasWinner = game.tick();
+
+      if (hasWinner) {
+        return;
+      }
 
       // const gameStateEvent = {
       //   Detail: JSON.stringify({ state: game.state }),
@@ -112,7 +112,8 @@ export const game = async function game() {
       // } catch (err) {
       //   log.error('Failed to publish game_ended event', err);
       // }
-      const gameLogicEndTime = performance.now() - loopStartTime;
+      const gameLogicEndTimeStamp = performance.now();
+      const gameLogicEndTime = gameLogicEndTimeStamp - loopStartTime;
 
       const connections = await getConnections();
       await sendMessage(
@@ -123,10 +124,12 @@ export const game = async function game() {
         connections.filter((connection) => connection.display),
       );
 
-      const messageSendEndTime = performance.now() - gameLogicEndTime;
+      const messageSendEndTime = performance.now() - gameLogicEndTimeStamp;
 
-      metrics.putMetric('Process Events', getAllEventsTime, Unit.Milliseconds);
-      metrics.putMetric('Remove Events', deleteAllEventsTime, Unit.Milliseconds);
+      log.info(`messageSendTime ${messageSendEndTime}`);
+
+      metrics.putMetric('Process Paddle Events', getAllEventsTime, Unit.Milliseconds);
+      metrics.putMetric('Remove Paddle Events', deleteAllEventsTime, Unit.Milliseconds);
       metrics.putMetric('Game Logic', gameLogicEndTime, Unit.Milliseconds);
       metrics.putMetric('Message Send', messageSendEndTime, Unit.Milliseconds);
 
@@ -136,10 +139,16 @@ export const game = async function game() {
 
   await loop();
 
+  const winner = game.getWinner();
+
   // Broadcast that a game has ended
   try {
     await eb.putEvents({
-      Entries: [gameEndedEvent],
+      Entries: [{
+        Detail: JSON.stringify({ winner }),
+        DetailType: 'game_ended',
+        Source: 'pong/game',
+      }],
     }).promise();
   } catch (err) {
     log.error('Failed to publish game_ended event', err);
@@ -147,7 +156,7 @@ export const game = async function game() {
 
   // Also send to all connected Clients
   const connections = await getConnections();
-  await sendMessage({ event: 'GAME_END' }, connections);
+  await sendMessage({ event: 'GAME_END', winner }, connections);
 
   // Clear up the game from DB
   await deleteGame();
