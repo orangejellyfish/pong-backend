@@ -6,6 +6,7 @@ provider:
   runtime: nodejs16.x
   region: eu-west-1
   stage: dev
+  logRetentionInDays: 1
 
   # Environment variables common to all Lambda functions in the stack. Lambda-
   # specific environment variables are merged with these and take precedence
