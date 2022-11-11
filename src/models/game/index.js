@@ -24,6 +24,31 @@ function collides(ax, ay, aw, ah, bx, by, bw, bh) {
   );
 }
 
+const deleteGame = async () => {
+  const game = {
+    TableName: TABLE_GAME,
+    Key: {
+      pk: 'GAME',
+      sk: 'GAME',
+    },
+  };
+
+  await db.delete(game);
+};
+
+const getGame = async () => {
+  const game = {
+    TableName: TABLE_GAME,
+    Key: {
+      pk: 'GAME',
+      sk: 'GAME',
+    },
+  };
+
+  const result = await db.get(game);
+  return result;
+};
+
 class Game {
   static PADDLE_SPEED = PADDLE_SPEED;
 
@@ -45,6 +70,7 @@ class Game {
       return new Game();
     }
     log.info('Not Creating Game, returning nothing!');
+    return null;
   }
 
   // Intended to be private but you can't do private constructors in normal JS.
@@ -166,31 +192,6 @@ class Game {
     this.#moveBall();
   }
 }
-
-const deleteGame = async () => {
-  const game = {
-    TableName: TABLE_GAME,
-    Key: {
-      pk: 'GAME',
-      sk: 'GAME',
-    },
-  };
-
-  await db.delete(game);
-};
-
-const getGame = async () => {
-  const game = {
-    TableName: TABLE_GAME,
-    Key: {
-      pk: 'GAME',
-      sk: 'GAME',
-    },
-  };
-
-  const result = await db.get(game);
-  return result;
-};
 
 export {
   Game,

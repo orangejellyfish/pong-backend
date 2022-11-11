@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import AWS from 'aws-sdk';
 import { createDynamoDBClient } from '@orangejellyfish/serverless-toolkit';
 

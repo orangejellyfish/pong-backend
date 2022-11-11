@@ -1,5 +1,4 @@
 import db, { batchDelete } from '../../utils/dynamodb';
-import log from '../../utils/logging';
 
 const { TABLE_GAME } = process.env;
 
