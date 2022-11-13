@@ -4,7 +4,7 @@ frameworkVersion: "=3.23.0"
 provider:
   name: aws
   runtime: nodejs16.x
-  region: eu-west-1
+  region: eu-west-2
   stage: dev
   logRetentionInDays: 1
 
