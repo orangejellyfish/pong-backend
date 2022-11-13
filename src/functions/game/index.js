@@ -116,10 +116,13 @@ export const game = async function game() {
       const gameLogicEndTime = gameLogicEndTimeStamp - loopStartTime;
 
       const connections = await getConnections();
+
+      const rightPlayers = connections.filter((connection) => connection.paddle === 1).length;
+      const leftPlayers = connections.length - rightPlayers;
+
       await sendMessage(
         {
-          state: game.state,
-          info: { connections: connections.length },
+          state: { ...game.state, players: [leftPlayers, rightPlayers] },
         },
         connections.filter((connection) => connection.display),
       );
