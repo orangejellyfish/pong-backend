@@ -44,6 +44,10 @@ export const game = async function game() {
       log.error('Failed to publish game_started event', err);
     }
 
+    // Also send to all connected Clients
+    const connections = await getConnections();
+    await sendMessage({ event: 'GAME_START' }, connections);
+
     while (counter < 1000) {
       const loopStartTime = performance.now();
 
