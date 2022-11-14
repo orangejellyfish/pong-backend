@@ -97,7 +97,7 @@ export const game = async function game() {
         game.state.paddles[1].dy = 0;
       }
 
-      const hasWinner = game.tick();
+      const { hasWinner, bounce } = game.tick();
 
       if (hasWinner) {
         return;
@@ -127,6 +127,7 @@ export const game = async function game() {
       await sendMessage(
         {
           state: { ...game.state, players: [leftPlayers, rightPlayers] },
+          bounce,
         },
         connections.filter((connection) => connection.display),
       );

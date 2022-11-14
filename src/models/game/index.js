@@ -126,6 +126,10 @@ class Game {
 
   #moveBall() {
     const { ball, scores, paddles: [leftPaddle, rightPaddle] } = this.state;
+    const result = {
+      hasWinner: false,
+      bounce: null,
+    };
 
     // Move ball by its velocity.
     ball.x += ball.dx;
@@ -152,7 +156,8 @@ class Game {
 
       // See if we have a winner
       if (scores[0] > GAME_WINNING_SCORE || scores[1] > GAME_WINNING_SCORE) {
-        return true;
+        result.hasWinner = true;
+        return result;
       }
 
       // Reset Ball Position.
@@ -172,6 +177,7 @@ class Game {
       PADDLE_HEIGHT,
     )) {
       ball.dx *= -1;
+      result.bounce = 0;
 
       // Move ball next to the paddle otherwise the collision will happen again
       // in the next frame.
@@ -187,13 +193,14 @@ class Game {
       PADDLE_HEIGHT,
     )) {
       ball.dx *= -1;
+      result.bounce = 1;
 
       // Move ball next to the paddle otherwise the collision will happen again
       // in the next frame.
       ball.x = rightPaddle.x - BALL_WIDTH;
     }
 
-    return false;
+    return result;
   }
 
   tick() {
